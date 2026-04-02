@@ -1,49 +1,395 @@
+import os
 import oracledb
-from flask import Flask
-import ssl
+from flask import Flask, redirect, render_template, request, url_for
+
+ORACLE_CLIENT_DIR = r"C:\Users\Siddharth Jain\Downloads\instantclient-basic-windows.x64-23.26.1.0.0\instantclient_23_0"
+
+if os.path.isdir(ORACLE_CLIENT_DIR):
+    try:
+        oracledb.init_oracle_client(lib_dir=ORACLE_CLIENT_DIR)
+    except Exception:
+        pass
 
 app = Flask(__name__)
 
-DB_USER     = "RICHARDTRAAD_SCHEMA_3RVCI"
+DB_USER = "RICHARDTRAAD_SCHEMA_3RVCI"
 DB_PASSWORD = "78PJK8LJPMAYM7YKROEE2O!0G8PhD9"
-DB_DSN      = "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCPS)(HOST=db.freesql.com)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=23ai_34ui2))(SECURITY=(SSL_SERVER_DN_MATCH=NO)))"
+DB_DSN = "db.freesql.com:1521/23ai_34ui2"
+
+def get_connection():
+    return oracledb.connect(user=DB_USER, password=DB_PASSWORD, dsn=DB_DSN)
+
+
+def go_home(message, message_type):
+    return redirect(url_for("index", message=message, message_type=message_type))
+
+
+def optional_number(value):
+    value = (value or "").strip().lower()
+    if value in {"", "none"}:
+        return None
+    return int(value)
+
+
+def format_db_error(error):
+    message = str(error)
+    if "ORA-00001" in message:
+        return "That record already exists or uses a duplicate email."
+    if "ORA-02291" in message:
+        return "A referenced trainer or gym does not exist."
+    if "ORA-02292" in message:
+        return "Delete blocked because this record has related child rows in other tables."
+    return message
+
+
+def fetch_one(query, params=None):
+    conn = None
+    cur = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(query, params or [])
+        return cur.fetchone()
+    finally:
+        if cur is not None:
+            cur.close()
+        if conn is not None:
+            conn.close()
+
+
+def run_write(query, params, success_message, not_found_message=None):
+    conn = None
+    cur = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(query, params)
+        conn.commit()
+
+        if not_found_message and cur.rowcount == 0:
+            return go_home(not_found_message, "error")
+
+        return go_home(success_message, "success")
+    except Exception as error:
+        if conn is not None:
+            conn.rollback()
+        return go_home(format_db_error(error), "error")
+    finally:
+        if cur is not None:
+            cur.close()
+        if conn is not None:
+            conn.close()
+
+
+def load_dashboard_data():
+    data = {
+        "db_status": "Connection Failed",
+        "status_color": "red",
+        "db_detail": "Unable to load database data.",
+        "counts": [],
+        "trainers": [],
+        "gyms": [],
+        "client_options": [],
+        "plan_options": [],
+        "clients": [],
+        "plans": [],
+    }
+
+    conn = None
+    cur = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        data["db_status"] = "Connected"
+        data["status_color"] = "green"
+        data["db_detail"] = (
+            f"Oracle DB Version: {conn.version} | Database: 23ai_34ui2 | User: {DB_USER}"
+        )
+
+        count_tables = [
+            ("Trainers", "Trainer"),
+            ("Gyms", "Gym"),
+            ("Clients", "Client"),
+            ("Plans", "WorkoutPlan"),
+            ("Exercises", "Exercise"),
+            ("Notifications", "Notification"),
+        ]
+
+        for label, table_name in count_tables:
+            cur.execute(f"SELECT COUNT(*) FROM {table_name}")
+            data["counts"].append({"label": label, "count": cur.fetchone()[0]})
+
+        cur.execute(
+            """
+            SELECT trainer_id, first_name || ' ' || last_name AS trainer_name
+            FROM Trainer
+            ORDER BY trainer_id
+            """
+        )
+        data["trainers"] = [{"id": row[0], "name": row[1]} for row in cur.fetchall()]
+
+        cur.execute(
+            """
+            SELECT gym_id, gym_name
+            FROM Gym
+            ORDER BY gym_id
+            """
+        )
+        data["gyms"] = [{"id": row[0], "name": row[1]} for row in cur.fetchall()]
+
+        cur.execute(
+            """
+            SELECT client_id, first_name || ' ' || last_name AS client_name
+            FROM Client
+            ORDER BY client_id
+            """
+        )
+        data["client_options"] = [{"id": row[0], "name": row[1]} for row in cur.fetchall()]
+
+        cur.execute(
+            """
+            SELECT plan_id, plan_name
+            FROM WorkoutPlan
+            ORDER BY plan_id
+            """
+        )
+        data["plan_options"] = [{"id": row[0], "name": row[1]} for row in cur.fetchall()]
+
+        cur.execute(
+            """
+            SELECT
+                c.client_id,
+                c.first_name || ' ' || c.last_name AS client_name,
+                c.email,
+                NVL(t.first_name || ' ' || t.last_name, 'None') AS trainer_name,
+                NVL(g.gym_name, 'None') AS gym_name
+            FROM Client c
+            LEFT JOIN Trainer t ON c.current_trainer_id = t.trainer_id
+            LEFT JOIN Gym g ON c.home_gym_id = g.gym_id
+            ORDER BY c.client_id
+            FETCH FIRST 20 ROWS ONLY
+            """
+        )
+        data["clients"] = [
+            {
+                "id": row[0],
+                "name": row[1],
+                "email": row[2],
+                "trainer": row[3],
+                "gym": row[4],
+            }
+            for row in cur.fetchall()
+        ]
+
+        cur.execute(
+            """
+            SELECT
+                p.plan_id,
+                p.plan_name,
+                c.first_name || ' ' || c.last_name AS client_name,
+                NVL(t.first_name || ' ' || t.last_name, 'Self-guided') AS trainer_name,
+                CASE WHEN p.is_archived = 1 THEN 'Yes' ELSE 'No' END AS archived_flag
+            FROM WorkoutPlan p
+            JOIN Client c ON p.client_id = c.client_id
+            LEFT JOIN Trainer t ON p.trainer_id = t.trainer_id
+            ORDER BY p.plan_id
+            FETCH FIRST 20 ROWS ONLY
+            """
+        )
+        data["plans"] = [
+            {
+                "id": row[0],
+                "name": row[1],
+                "client": row[2],
+                "trainer": row[3],
+                "archived": row[4],
+            }
+            for row in cur.fetchall()
+        ]
+    except Exception as error:
+        data["db_detail"] = str(error)
+    finally:
+        if cur is not None:
+            cur.close()
+        if conn is not None:
+            conn.close()
+
+    return data
+
 
 @app.route("/")
 def index():
-    try:
-        conn = oracledb.connect(user=DB_USER, password=DB_PASSWORD, dsn=DB_DSN)
-        version = conn.version
-        conn.close()
-        status = "Connected"
-        color  = "green"
-        detail = f"Oracle DB Version: {version} | Database: 23ai_34ui2 | User: {DB_USER}"
-    except Exception as e:
-        status = "Connection Failed"
-        color  = "red"
-        detail = str(e)
+    data = load_dashboard_data()
+    data["message"] = request.args.get("message", "")
+    data["message_type"] = request.args.get("message_type", "success")
+    return render_template("index.html", **data)
 
-    return f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Personal Training DB</title>
-        <style>
-            body {{ font-family: Arial, sans-serif; text-align: center; margin-top: 80px; background: #f4f4f4; }}
-            .box {{ background: white; padding: 40px; border-radius: 10px; display: inline-block; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-            h1 {{ color: #333; }}
-            .status {{ font-size: 48px; font-weight: bold; color: {color}; margin: 20px 0; }}
-            .detail {{ color: #666; font-size: 14px; margin-top: 10px; }}
-        </style>
-    </head>
-    <body>
-        <div class="box">
-            <h1>Personal Training Database</h1>
-            <div class="status">{status}</div>
-            <div class="detail">{detail}</div>
-        </div>
-    </body>
-    </html>
-    """
+
+@app.post("/clients/add")
+def add_client():
+    first_name = request.form.get("first_name", "").strip()
+    last_name = request.form.get("last_name", "").strip()
+    email = request.form.get("email", "").strip()
+    trainer_id = optional_number(request.form.get("current_trainer_id"))
+    home_gym_id = optional_number(request.form.get("home_gym_id"))
+
+    if not first_name or not last_name or not email:
+        return go_home("First name, last name, and email are required.", "error")
+
+    return run_write(
+        """
+        INSERT INTO Client (first_name, last_name, email, current_trainer_id, home_gym_id)
+        VALUES (:1, :2, :3, :4, :5)
+        """,
+        [first_name, last_name, email, trainer_id, home_gym_id],
+        f"Client {first_name} {last_name} was added successfully.",
+    )
+
+
+@app.post("/clients/update")
+def update_client():
+    client_id = request.form.get("client_id", "").strip()
+
+    if not client_id:
+        return go_home("Please choose a client to update.", "error")
+
+    try:
+        row = fetch_one(
+            """
+            SELECT first_name, last_name, email, current_trainer_id, home_gym_id
+            FROM Client
+            WHERE client_id = :1
+            """,
+            [int(client_id)],
+        )
+
+        if row is None:
+            return go_home("Client not found.", "error")
+
+        first_name = request.form.get("first_name", "").strip() or row[0]
+        last_name = request.form.get("last_name", "").strip() or row[1]
+        email = request.form.get("email", "").strip() or row[2]
+
+        trainer_value = request.form.get("current_trainer_id", "")
+        gym_value = request.form.get("home_gym_id", "")
+
+        trainer_id = row[3] if trainer_value == "" else optional_number(trainer_value)
+        home_gym_id = row[4] if gym_value == "" else optional_number(gym_value)
+
+        return run_write(
+            """
+            UPDATE Client
+            SET first_name = :1,
+                last_name = :2,
+                email = :3,
+                current_trainer_id = :4,
+                home_gym_id = :5
+            WHERE client_id = :6
+            """,
+            [first_name, last_name, email, trainer_id, home_gym_id, int(client_id)],
+            f"Client {client_id} was updated successfully.",
+            "Client not found.",
+        )
+    except Exception as error:
+        return go_home(format_db_error(error), "error")
+
+
+@app.post("/clients/delete")
+def delete_client():
+    client_id = request.form.get("client_id", "").strip()
+
+    if not client_id:
+        return go_home("Please choose a client to delete.", "error")
+
+    return run_write(
+        "DELETE FROM Client WHERE client_id = :1",
+        [int(client_id)],
+        f"Client {client_id} was deleted successfully.",
+        "Client not found.",
+    )
+
+
+@app.post("/plans/add")
+def add_plan():
+    client_id = request.form.get("client_id", "").strip()
+    trainer_id = optional_number(request.form.get("trainer_id"))
+    plan_name = request.form.get("plan_name", "").strip()
+    is_archived = int(request.form.get("is_archived", "0"))
+
+    if not client_id or not plan_name:
+        return go_home("Please choose a client and enter a plan name.", "error")
+
+    return run_write(
+        """
+        INSERT INTO WorkoutPlan (client_id, trainer_id, plan_name, is_archived)
+        VALUES (:1, :2, :3, :4)
+        """,
+        [int(client_id), trainer_id, plan_name, is_archived],
+        f"Workout plan '{plan_name}' was added successfully.",
+    )
+
+
+@app.post("/plans/update")
+def update_plan():
+    plan_id = request.form.get("plan_id", "").strip()
+
+    if not plan_id:
+        return go_home("Please choose a workout plan to update.", "error")
+
+    try:
+        row = fetch_one(
+            """
+            SELECT trainer_id, plan_name, is_archived
+            FROM WorkoutPlan
+            WHERE plan_id = :1
+            """,
+            [int(plan_id)],
+        )
+
+        if row is None:
+            return go_home("Workout plan not found.", "error")
+
+        trainer_value = request.form.get("trainer_id", "")
+        archived_value = request.form.get("is_archived", "")
+
+        trainer_id = row[0] if trainer_value == "" else optional_number(trainer_value)
+        plan_name = request.form.get("plan_name", "").strip() or row[1]
+        is_archived = row[2] if archived_value == "" else int(archived_value)
+
+        return run_write(
+            """
+            UPDATE WorkoutPlan
+            SET trainer_id = :1,
+                plan_name = :2,
+                is_archived = :3
+            WHERE plan_id = :4
+            """,
+            [trainer_id, plan_name, is_archived, int(plan_id)],
+            f"Workout plan {plan_id} was updated successfully.",
+            "Workout plan not found.",
+        )
+    except Exception as error:
+        return go_home(format_db_error(error), "error")
+
+
+@app.post("/plans/delete")
+def delete_plan():
+    plan_id = request.form.get("plan_id", "").strip()
+
+    if not plan_id:
+        return go_home("Please choose a workout plan to delete.", "error")
+
+    return run_write(
+        "DELETE FROM WorkoutPlan WHERE plan_id = :1",
+        [int(plan_id)],
+        f"Workout plan {plan_id} was deleted successfully.",
+        "Workout plan not found.",
+    )
+
 
 if __name__ == "__main__":
     app.run(debug=True)
