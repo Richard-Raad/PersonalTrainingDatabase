@@ -1,5 +1,5 @@
 # Personal Training Database Project
-## By: Richard Raad (richardtraad), Aiden Racelis (aidenr23), Vissu Manchem (vissumanchem@vt.edu), Sid Jain (siddharthjain@vt.edu)
+## By: Richard Raad (richardtraad), Aiden Racelis (aidenr23), Vissu Manchem (vissumanchem), Sid Jain (siddharthjain)
 
 
 ## Problem Definition for Implementing
