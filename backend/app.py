@@ -1,14 +1,20 @@
 import os
 import oracledb
 from flask import Flask, redirect, render_template, request, url_for
+from dotenv import load_dotenv
 
-ORACLE_CLIENT_DIR = r"C:\Users\Siddharth Jain\Downloads\instantclient-basic-windows.x64-23.26.1.0.0\instantclient_23_0"
+# insert from .env the credentials
+load_dotenv()
 
-if os.path.isdir(ORACLE_CLIENT_DIR):
-    try:
-        oracledb.init_oracle_client(lib_dir=ORACLE_CLIENT_DIR)
-    except Exception:
-        pass
+ORACLE_CLIENT_DIR = os.path.expanduser(os.getenv("ORACLE_CLIENT_DIR"))
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_DSN = os.getenv("DB_DSN")
+
+try:
+    oracledb.init_oracle_client(lib_dir=ORACLE_CLIENT_DIR)
+except Exception:
+    pass
 
 app = Flask(__name__)
 
