@@ -3,29 +3,43 @@ import oracledb
 from flask import Flask, redirect, render_template, request, url_for
 from dotenv import load_dotenv
 
-# insert from .env the credentials
+# Load .env values
 load_dotenv()
 
-ORACLE_CLIENT_DIR = os.path.expanduser(os.getenv("ORACLE_CLIENT_DIR"))
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_DSN = os.getenv("DB_DSN")
+# Oracle client path from .env
+oracle_client_dir = os.getenv("ORACLE_CLIENT_DIR")
+ORACLE_CLIENT_DIR = os.path.expanduser(oracle_client_dir) if oracle_client_dir else None
 
-try:
-    oracledb.init_oracle_client(lib_dir=ORACLE_CLIENT_DIR)
-except Exception:
-    pass
+# Use the provider's exact connection values
+DB_USER = "RICHARDTRAAD_SCHEMA_3RVCI"
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_DSN = "db.freesql.com:1521/23ai_34ui2"
+
+if not ORACLE_CLIENT_DIR:
+    raise RuntimeError("ORACLE_CLIENT_DIR is not set in your .env file.")
+
+if not DB_PASSWORD:
+    raise RuntimeError("DB_PASSWORD is not set in your .env file.")
+
+print("ORACLE_CLIENT_DIR =", ORACLE_CLIENT_DIR)
+print("DB_DSN =", repr(DB_DSN))
+print("Thin mode before init:", oracledb.is_thin_mode())
+
+oracledb.init_oracle_client(lib_dir=ORACLE_CLIENT_DIR)
+
+print("Oracle client initialized successfully.")
+print("Thin mode after init:", oracledb.is_thin_mode())
+print("Oracle client version:", oracledb.clientversion())
 
 app = Flask(
     __name__,
     template_folder="../frontend/templates",
     static_folder="../frontend/static"
 )
-DB_USER = "RICHARDTRAAD_SCHEMA_3RVCI"
-DB_PASSWORD = "78PJK8LJPMAYM7YKROEE2O!0G8PhD9"
-DB_DSN = "db.freesql.com:1521/23ai_34ui2"
+
 
 def get_connection():
+    print("Connecting with DSN:", repr(DB_DSN))
     return oracledb.connect(user=DB_USER, password=DB_PASSWORD, dsn=DB_DSN)
 
 
@@ -42,12 +56,31 @@ def optional_number(value):
 
 def format_db_error(error):
     message = str(error)
+
+    if "ORA-12514" in message:
+        return (
+            "ORA-12514: The app reached the Oracle listener, but the service name "
+            "was not accepted. Double-check the DSN/service name and try again."
+        )
+    if "DPY-3001" in message:
+        return (
+            "Connection failed because the database requires Oracle Thick mode, "
+            "but the Oracle client was not initialized correctly."
+        )
+    if "DPY-6005" in message:
+        return (
+            "Could not connect to the Oracle database. Verify the DSN, username, "
+            "password, and Oracle client setup."
+        )
+    if "ORA-01017" in message:
+        return "Invalid username or password."
     if "ORA-00001" in message:
         return "That record already exists or uses a duplicate email."
     if "ORA-02291" in message:
         return "A referenced trainer or gym does not exist."
     if "ORA-02292" in message:
         return "Delete blocked because this record has related child rows in other tables."
+
     return message
 
 
@@ -104,6 +137,10 @@ def load_dashboard_data():
         "plan_options": [],
         "clients": [],
         "plans": [],
+        # Report 1: Client Progress Summary
+        "report_client_progress": [],
+        # Report 2: Trainer Workload Summary
+        "report_trainer_workload": [],
     }
 
     conn = None
@@ -219,8 +256,87 @@ def load_dashboard_data():
             }
             for row in cur.fetchall()
         ]
+
+        # ------------------------------------------------------------
+        # REPORT 1: Client Progress Summary
+        # For each client, shows total sessions logged, total distinct
+        # exercises performed, and average RPE across all sets.
+        # Uses: LEFT JOINs across Client, WorkoutSession,
+        #       PerformanceLog, PerformanceLogSet + GROUP BY
+        # ------------------------------------------------------------
+        cur.execute(
+            """
+            SELECT
+                c.client_id,
+                c.first_name || ' ' || c.last_name          AS client_name,
+                NVL(t.first_name || ' ' || t.last_name,
+                    'Self-guided')                           AS trainer_name,
+                COUNT(DISTINCT ws.session_id)                AS total_sessions,
+                COUNT(DISTINCT pl.log_id)                    AS total_exercises_logged,
+                ROUND(AVG(pls.rpe), 1)                       AS avg_rpe
+            FROM Client c
+            LEFT JOIN Trainer          t   ON t.trainer_id   = c.current_trainer_id
+            LEFT JOIN WorkoutSession   ws  ON ws.client_id   = c.client_id
+            LEFT JOIN PerformanceLog   pl  ON pl.session_id  = ws.session_id
+            LEFT JOIN PerformanceLogSet pls ON pls.log_id    = pl.log_id
+            GROUP BY
+                c.client_id,
+                c.first_name, c.last_name,
+                t.first_name, t.last_name
+            ORDER BY total_sessions DESC NULLS LAST, c.client_id
+            """
+        )
+        data["report_client_progress"] = [
+            {
+                "client_name": row[1],
+                "trainer_name": row[2],
+                "total_sessions": row[3],
+                "total_exercises_logged": row[4],
+                "avg_rpe": row[5] if row[5] is not None else "N/A",
+            }
+            for row in cur.fetchall()
+        ]
+
+        # ------------------------------------------------------------
+        # REPORT 2: Trainer Workload Summary
+        # For each trainer, shows total active clients, total workout
+        # plans assigned, and number of gyms affiliated with.
+        # Uses: LEFT JOINs across Trainer, Client, WorkoutPlan,
+        #       TrainerGym + GROUP BY
+        # ------------------------------------------------------------
+        cur.execute(
+            """
+            SELECT
+                t.trainer_id,
+                t.first_name || ' ' || t.last_name   AS trainer_name,
+                t.credentials,
+                COUNT(DISTINCT c.client_id)           AS total_clients,
+                COUNT(DISTINCT wp.plan_id)            AS total_plans_assigned,
+                COUNT(DISTINCT tg.gym_id)             AS gyms_affiliated
+            FROM Trainer t
+            LEFT JOIN Client      c   ON c.current_trainer_id = t.trainer_id
+            LEFT JOIN WorkoutPlan wp  ON wp.trainer_id        = t.trainer_id
+            LEFT JOIN TrainerGym  tg  ON tg.trainer_id        = t.trainer_id
+            GROUP BY
+                t.trainer_id,
+                t.first_name, t.last_name,
+                t.credentials
+            ORDER BY total_clients DESC NULLS LAST, t.trainer_id
+            """
+        )
+        data["report_trainer_workload"] = [
+            {
+                "trainer_name": row[1],
+                "credentials": row[2] or "N/A",
+                "total_clients": row[3],
+                "total_plans_assigned": row[4],
+                "gyms_affiliated": row[5],
+            }
+            for row in cur.fetchall()
+        ]
+
     except Exception as error:
-        data["db_detail"] = str(error)
+        data["db_detail"] = format_db_error(error)
     finally:
         if cur is not None:
             cur.close()
