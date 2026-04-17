@@ -16,8 +16,11 @@ try:
 except Exception:
     pass
 
-app = Flask(__name__)
-
+app = Flask(
+    __name__,
+    template_folder="../frontend/templates",
+    static_folder="../frontend/static"
+)
 DB_USER = "RICHARDTRAAD_SCHEMA_3RVCI"
 DB_PASSWORD = "78PJK8LJPMAYM7YKROEE2O!0G8PhD9"
 DB_DSN = "db.freesql.com:1521/23ai_34ui2"
