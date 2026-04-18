@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Create User — Personal Training Database</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+    <span class="nav-brand">Personal Training Database</span>
+    <div class="nav-links">
+        <span class="nav-user">{{ current_user.username }} ({{ current_user.role }})</span>
+        <a href="/">Dashboard</a>
+        <a href="/change-password">Change Password</a>
+        <a href="/logout" class="nav-logout">Log Out</a>
+    </div>
+</nav>
+
+<div class="auth-page">
+    <div class="auth-box">
+        <h2>Create User Account</h2>
+        <p style="color:#666; font-size:0.9em;">Admin only. Assign a role and optionally link
+           the account to an existing Trainer or Client record.</p>
+
+        {% if error %}
+        <div class="message error">{{ error }}</div>
+        {% endif %}
+
+        {% if success %}
+        <div class="message success">{{ success }}</div>
+        {% endif %}
+
+        <form method="post" action="/admin/create-user">
+            <label>
+                Username<br>
+                <input type="text" name="username" required autofocus autocomplete="off">
+            </label>
+            <label>
+                Password<br>
+                <input type="password" name="password" required
+                       autocomplete="new-password" minlength="6">
+            </label>
+            <label>
+                Role<br>
+                <select name="role">
+                    <option value="client">Client</option>
+                    <option value="trainer">Trainer</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </label>
+            <label>
+                Link to Trainer (optional)<br>
+                <select name="trainer_id">
+                    <option value="">— None —</option>
+                    {% for t in trainers %}
+                    <option value="{{ t.id }}">{{ t.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <label>
+                Link to Client (optional)<br>
+                <select name="client_id">
+                    <option value="">— None —</option>
+                    {% for c in clients %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Create User</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sign Up — Personal Training Database</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="auth-page">
+    <h1>Personal Training Database</h1>
+    <div class="auth-box">
+        <h2>Create Account</h2>
+
+        {% if error %}
+        <div class="message error">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="/signup">
+            <label>
+                Username<br>
+                <input type="text" name="username" required autofocus autocomplete="username">
+            </label>
+            <label>
+                Password<br>
+                <input type="password" name="password" required
+                       autocomplete="new-password" minlength="6">
+            </label>
+            <label>
+                Confirm Password<br>
+                <input type="password" name="confirm_password" required
+                       autocomplete="new-password" minlength="6">
+            </label>
+            <button type="submit">Create Account</button>
+        </form>
+
+        <p class="auth-link">
+            Already have an account? <a href="/login">Log in</a>
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

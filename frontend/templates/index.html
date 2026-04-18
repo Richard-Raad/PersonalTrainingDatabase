@@ -6,218 +6,289 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Personal Training Database</h1>
 
-    <section>
-        <div class="status">{{ db_status }}</div>
-        <div>{{ db_detail }}</div>
-    </section>
+<!-- ── Navigation bar ──────────────────────────────────────────────────── -->
+<nav class="navbar">
+    <span class="nav-brand">Personal Training Database</span>
+    <div class="nav-links">
+        <span class="nav-user">{{ current_user.username }} ({{ current_user.role }})</span>
+        <a href="/change-password">Change Password</a>
+        {% if current_user.role == 'admin' %}
+        <a href="/admin/create-user">Create User</a>
+        {% endif %}
+        <a href="/logout" class="nav-logout">Log Out</a>
+    </div>
+</nav>
 
-    {% if message %}
-    <div class="message {{ message_type }}">{{ message }}</div>
-    {% endif %}
+<!-- ── Status banner ───────────────────────────────────────────────────── -->
+<section>
+    <div class="status {{ status_color }}">{{ db_status }}</div>
+    <div>{{ db_detail }}</div>
+</section>
 
-    <section>
-        <h2>Table Counts</h2>
-        <ul>
-            {% for item in counts %}
-            <li>{{ item.label }}: {{ item.count }}</li>
-            {% endfor %}
-        </ul>
-    </section>
+{% if message %}
+<div class="message {{ message_type }}">{{ message }}</div>
+{% endif %}
 
-    <section>
-        <h2>Client Forms</h2>
+<!-- ── Table counts ────────────────────────────────────────────────────── -->
+<section>
+    <h2>Table Counts</h2>
+    <ul>
+        {% for item in counts %}
+        <li>{{ item.label }}: {{ item.count }}</li>
+        {% endfor %}
+    </ul>
+</section>
 
-        <h3>Insert Client</h3>
-        <form method="post" action="/clients/add">
-            <label>First Name<br><input type="text" name="first_name" required></label>
-            <label>Last Name<br><input type="text" name="last_name" required></label>
-            <label>Email<br><input type="email" name="email" required></label>
-            <label>Trainer<br>
-                <select name="current_trainer_id">
-                    <option value="">No trainer assigned</option>
-                    {% for trainer in trainers %}
-                    <option value="{{ trainer.id }}">{{ trainer.id }} - {{ trainer.name }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <label>Home Gym<br>
-                <select name="home_gym_id">
-                    <option value="">No home gym assigned</option>
-                    {% for gym in gyms %}
-                    <option value="{{ gym.id }}">{{ gym.id }} - {{ gym.name }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <button type="submit">Insert Client</button>
-        </form>
+<!-- ── Client Forms ────────────────────────────────────────────────────── -->
+<section>
+    <h2>Client Forms</h2>
 
-        <h3>Update Client</h3>
-        <form method="post" action="/clients/update">
-            <label>Client<br>
-                <select name="client_id" required>
-                    <option value="">Choose a client</option>
-                    {% for client in client_options %}
-                    <option value="{{ client.id }}">{{ client.id }} - {{ client.name }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <label>New First Name<br><input type="text" name="first_name"></label>
-            <label>New Last Name<br><input type="text" name="last_name"></label>
-            <label>New Email<br><input type="email" name="email"></label>
-            <label>Trainer<br>
-                <select name="current_trainer_id">
-                    <option value="">Keep current trainer</option>
-                    <option value="none">Remove trainer</option>
-                    {% for trainer in trainers %}
-                    <option value="{{ trainer.id }}">{{ trainer.id }} - {{ trainer.name }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <label>Home Gym<br>
-                <select name="home_gym_id">
-                    <option value="">Keep current gym</option>
-                    <option value="none">Remove gym</option>
-                    {% for gym in gyms %}
-                    <option value="{{ gym.id }}">{{ gym.id }} - {{ gym.name }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <button type="submit">Update Client</button>
-        </form>
+    <h3>Insert Client</h3>
+    <form method="post" action="/clients/add">
+        <label>First Name<br><input type="text" name="first_name" required></label>
+        <label>Last Name<br><input type="text" name="last_name" required></label>
+        <label>Email<br><input type="email" name="email" required></label>
+        <label>Trainer<br>
+            <select name="current_trainer_id">
+                <option value="">No trainer assigned</option>
+                {% for trainer in trainers %}
+                <option value="{{ trainer.id }}">{{ trainer.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Home Gym<br>
+            <select name="home_gym_id">
+                <option value="">No home gym assigned</option>
+                {% for gym in gyms %}
+                <option value="{{ gym.id }}">{{ gym.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit">Insert Client</button>
+    </form>
 
-        <h3>Delete Client</h3>
-        <form method="post" action="/clients/delete">
-            <label>Client<br>
-                <select name="client_id" required>
-                    <option value="">Choose a client</option>
-                    {% for client in client_options %}
-                    <option value="{{ client.id }}">{{ client.id }} - {{ client.name }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <button type="submit">Delete Client</button>
-        </form>
-    </section>
+    <h3>Update Client</h3>
+    <form method="post" action="/clients/update">
+        <label>Client<br>
+            <select name="client_id" required>
+                <option value="">Choose a client</option>
+                {% for client in client_options %}
+                <option value="{{ client.id }}">{{ client.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>New First Name<br><input type="text" name="first_name"></label>
+        <label>New Last Name<br><input type="text" name="last_name"></label>
+        <label>New Email<br><input type="email" name="email"></label>
+        <label>Trainer<br>
+            <select name="current_trainer_id">
+                <option value="">Keep current trainer</option>
+                <option value="none">Remove trainer</option>
+                {% for trainer in trainers %}
+                <option value="{{ trainer.id }}">{{ trainer.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Home Gym<br>
+            <select name="home_gym_id">
+                <option value="">Keep current gym</option>
+                <option value="none">Remove gym</option>
+                {% for gym in gyms %}
+                <option value="{{ gym.id }}">{{ gym.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit">Update Client</button>
+    </form>
 
-    <section>
-        <h2>Workout Plan Forms</h2>
+    <h3>Delete Client</h3>
+    <form method="post" action="/clients/delete">
+        <label>Client<br>
+            <select name="client_id" required>
+                <option value="">Choose a client</option>
+                {% for client in client_options %}
+                <option value="{{ client.id }}">{{ client.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit">Delete Client</button>
+    </form>
+</section>
 
-        <h3>Insert Workout Plan</h3>
-        <form method="post" action="/plans/add">
-            <label>Client<br>
-                <select name="client_id" required>
-                    <option value="">Choose a client</option>
-                    {% for client in client_options %}
-                    <option value="{{ client.id }}">{{ client.id }} - {{ client.name }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <label>Trainer<br>
-                <select name="trainer_id">
-                    <option value="">Self-guided plan</option>
-                    {% for trainer in trainers %}
-                    <option value="{{ trainer.id }}">{{ trainer.id }} - {{ trainer.name }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <label>Plan Name<br><input type="text" name="plan_name" required></label>
-            <label>Archived<br>
-                <select name="is_archived">
-                    <option value="0">Active</option>
-                    <option value="1">Archived</option>
-                </select>
-            </label>
-            <button type="submit">Insert Plan</button>
-        </form>
+<!-- ── Workout Plan Forms ──────────────────────────────────────────────── -->
+<section>
+    <h2>Workout Plan Forms</h2>
 
-        <h3>Update Workout Plan</h3>
-        <form method="post" action="/plans/update">
-            <label>Workout Plan<br>
-                <select name="plan_id" required>
-                    <option value="">Choose a workout plan</option>
-                    {% for plan in plan_options %}
-                    <option value="{{ plan.id }}">{{ plan.id }} - {{ plan.name }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <label>New Plan Name<br><input type="text" name="plan_name"></label>
-            <label>Trainer<br>
-                <select name="trainer_id">
-                    <option value="">Keep current trainer</option>
-                    <option value="none">Remove trainer</option>
-                    {% for trainer in trainers %}
-                    <option value="{{ trainer.id }}">{{ trainer.id }} - {{ trainer.name }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <label>Archived<br>
-                <select name="is_archived">
-                    <option value="">Keep current status</option>
-                    <option value="0">Set Active</option>
-                    <option value="1">Set Archived</option>
-                </select>
-            </label>
-            <button type="submit">Update Plan</button>
-        </form>
+    <h3>Insert Workout Plan</h3>
+    <form method="post" action="/plans/add">
+        <label>Client<br>
+            <select name="client_id" required>
+                <option value="">Choose a client</option>
+                {% for client in client_options %}
+                <option value="{{ client.id }}">{{ client.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Trainer<br>
+            <select name="trainer_id">
+                <option value="">Self-guided plan</option>
+                {% for trainer in trainers %}
+                <option value="{{ trainer.id }}">{{ trainer.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Plan Name<br><input type="text" name="plan_name" required></label>
+        <label>Status<br>
+            <select name="is_archived">
+                <option value="0">Active</option>
+                <option value="1">Archived</option>
+            </select>
+        </label>
+        <button type="submit">Insert Plan</button>
+    </form>
 
-        <h3>Delete Workout Plan</h3>
-        <form method="post" action="/plans/delete">
-            <label>Workout Plan<br>
-                <select name="plan_id" required>
-                    <option value="">Choose a workout plan</option>
-                    {% for plan in plan_options %}
-                    <option value="{{ plan.id }}">{{ plan.id }} - {{ plan.name }}</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <button type="submit">Delete Plan</button>
-        </form>
-    </section>
+    <h3>Update Workout Plan</h3>
+    <form method="post" action="/plans/update">
+        <label>Workout Plan<br>
+            <select name="plan_id" required>
+                <option value="">Choose a workout plan</option>
+                {% for plan in plan_options %}
+                <option value="{{ plan.id }}">{{ plan.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>New Plan Name<br><input type="text" name="plan_name"></label>
+        <label>Trainer<br>
+            <select name="trainer_id">
+                <option value="">Keep current trainer</option>
+                <option value="none">Remove trainer</option>
+                {% for trainer in trainers %}
+                <option value="{{ trainer.id }}">{{ trainer.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Status<br>
+            <select name="is_archived">
+                <option value="">Keep current status</option>
+                <option value="0">Set Active</option>
+                <option value="1">Set Archived</option>
+            </select>
+        </label>
+        <button type="submit">Update Plan</button>
+    </form>
 
-    <section>
-        <h2>Current Clients</h2>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Trainer</th>
-                <th>Gym</th>
-            </tr>
-            {% for client in clients %}
-            <tr>
-                <td>{{ client.id }}</td>
-                <td>{{ client.name }}</td>
-                <td>{{ client.email }}</td>
-                <td>{{ client.trainer }}</td>
-                <td>{{ client.gym }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </section>
+    <h3>Delete Workout Plan</h3>
+    <form method="post" action="/plans/delete">
+        <label>Workout Plan<br>
+            <select name="plan_id" required>
+                <option value="">Choose a workout plan</option>
+                {% for plan in plan_options %}
+                <option value="{{ plan.id }}">{{ plan.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit">Delete Plan</button>
+    </form>
+</section>
 
-    <section>
-        <h2>Current Workout Plans</h2>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Plan</th>
-                <th>Client</th>
-                <th>Trainer</th>
-                <th>Archived</th>
-            </tr>
-            {% for plan in plans %}
-            <tr>
-                <td>{{ plan.id }}</td>
-                <td>{{ plan.name }}</td>
-                <td>{{ plan.client }}</td>
-                <td>{{ plan.trainer }}</td>
-                <td>{{ plan.archived }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-    </section>
+<!-- ── Current Clients ─────────────────────────────────────────────────── -->
+<section>
+    <h2>Current Clients</h2>
+    <table>
+        <tr>
+            <th>ID</th><th>Name</th><th>Email</th><th>Trainer</th><th>Gym</th>
+        </tr>
+        {% for client in clients %}
+        <tr>
+            <td>{{ client.id }}</td>
+            <td>{{ client.name }}</td>
+            <td>{{ client.email }}</td>
+            <td>{{ client.trainer }}</td>
+            <td>{{ client.gym }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>
+
+<!-- ── Current Workout Plans ──────────────────────────────────────────── -->
+<section>
+    <h2>Current Workout Plans</h2>
+    <table>
+        <tr>
+            <th>ID</th><th>Plan</th><th>Client</th><th>Trainer</th><th>Archived</th>
+        </tr>
+        {% for plan in plans %}
+        <tr>
+            <td>{{ plan.id }}</td>
+            <td>{{ plan.name }}</td>
+            <td>{{ plan.client }}</td>
+            <td>{{ plan.trainer }}</td>
+            <td>{{ plan.archived }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>
+
+<!-- ── Report 1: Client Progress Summary ─────────────────────────────── -->
+<section>
+    <h2>Report 1: Client Progress Summary</h2>
+    <p>
+        This report summarizes each client's workout history. It displays the total number
+        of sessions logged, the total number of distinct exercises performed across all
+        sessions, and the client's average Rate of Perceived Exertion (RPE) — a 1–10
+        scale indicating effort level. Clients with no sessions logged will show zeros,
+        making this report useful for identifying both active and inactive users at a glance.
+    </p>
+    <table>
+        <tr>
+            <th>Client</th>
+            <th>Trainer</th>
+            <th>Total Sessions</th>
+            <th>Exercises Logged</th>
+            <th>Avg RPE</th>
+        </tr>
+        {% for row in report_client_progress %}
+        <tr>
+            <td>{{ row.client_name }}</td>
+            <td>{{ row.trainer_name }}</td>
+            <td>{{ row.total_sessions }}</td>
+            <td>{{ row.total_exercises_logged }}</td>
+            <td>{{ row.avg_rpe }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>
+
+<!-- ── Report 2: Trainer Workload Summary ────────────────────────────── -->
+<section>
+    <h2>Report 2: Trainer Workload Summary</h2>
+    <p>
+        This report summarizes the workload and reach of each trainer in the system.
+        It displays how many active clients each trainer is currently managing, the total
+        number of workout plans they have assigned, and how many gyms they are affiliated
+        with. This information is useful for administrators to identify overloaded trainers
+        or trainers with capacity to take on new clients.
+    </p>
+    <table>
+        <tr>
+            <th>Trainer</th>
+            <th>Credentials</th>
+            <th>Active Clients</th>
+            <th>Plans Assigned</th>
+            <th>Gyms Affiliated</th>
+        </tr>
+        {% for row in report_trainer_workload %}
+        <tr>
+            <td>{{ row.trainer_name }}</td>
+            <td>{{ row.credentials }}</td>
+            <td>{{ row.total_clients }}</td>
+            <td>{{ row.total_plans_assigned }}</td>
+            <td>{{ row.gyms_affiliated }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>
+
 </body>
 </html>
