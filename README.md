@@ -73,49 +73,49 @@ The application includes detailed ER diagrams and UI screenshots showcasing the 
 **Figure 2.2 - User Registration/Signup Page**
 ![Figure 2.2](docs/screenshots/figure2.2.png)
 
-**Figure 2.3 - User Interface Overview**
+**Figure 2.3 - Overview & Tables**
 ![Figure 2.3](docs/screenshots/figure2.3.png)
 
-**Figure 2.4 - Dashboard Main Page**
+**Figure 2.4 - Dashboard Change Password**
 ![Figure 2.4](docs/screenshots/figure2.4.png)
 
-**Figure 2.5 - User Profile Section**
+**Figure 2.5 - Create Account**
 ![Figure 2.5](docs/screenshots/figure2.5.png)
 
 ### Workout Management Screenshots
 
-**Figure 3.1 - Workout Plans Management**
+**Figure 3.1 - Connected to Database**
 ![Figure 3.1](docs/screenshots/figure3.1.png)
 
 ### Feature Demonstrations
 
-**Figure 5.1 - Performance Tracking Dashboard**
+**Figure 5.1 - Client Progress Summary**
 ![Figure 5.1](docs/screenshots/figure5.1.png)
 
-**Figure 5.2 - Performance Metrics View**
+**Figure 5.2 - Trainer Workload Summery**
 ![Figure 5.2](docs/screenshots/figure5.2.png)
 
-### Admin & Additional Features
+### Additional Features
 
-**Figure 6.1 - Admin Panel**
+**Figure 6.1 - Adding Clients**
 ![Figure 6.1](docs/screenshots/figure6.1.png)
 
-**Figure 6.2 - User Management**
+**Figure 6.2 - Succesful Addition of Client**
 ![Figure 6.2](docs/screenshots/figure6.2.png)
 
-**Figure 6.3 - Trainer Management**
+**Figure 6.3 - Current Clients**
 ![Figure 6.3](docs/screenshots/figure6.3.png)
 
-**Figure 6.4 - Client Management**
+**Figure 6.4 - Updating Clients**
 ![Figure 6.4](docs/screenshots/figure6.4.png)
 
-**Figure 6.5 - Exercise Library**
+**Figure 6.5 - Succesful Update of Client**
 ![Figure 6.5](docs/screenshots/figure6.5.png)
 
-**Figure 6.6 - Workout Session Tracking**
+**Figure 6.6 - Removing Client**
 ![Figure 6.6](docs/screenshots/figure6.6.png)
 
-**Figure 6.7 - Performance Analytics**
+**Figure 6.7 - Succesful Removal of Client**
 ![Figure 6.7](docs/screenshots/figure6.7.png)
 
 ---
@@ -272,105 +272,3 @@ The application uses a relational database with the following main entities:
 - **BodyMetric** - User body measurements over time
 - **Notification** - System notifications
 
-For detailed schema information, refer to [db/PTDB_Create.sql](db/PTDB_Create.sql)
-
----
-
-## Usage
-
-### For New Users
-1. Navigate to the signup page
-2. Create an account with a username and password (minimum 6 characters)
-3. Login with your credentials
-4. Access the dashboard to view available trainers and workout plans
-
-### For Trainers
-1. Login with trainer credentials
-2. Create and manage workout plans
-3. View client progress and performance metrics
-4. Send notifications to clients
-
-### For Admins
-1. Login with admin credentials
-2. Access the admin panel at `/admin/create-user`
-3. Create users with specific roles (admin, trainer, client)
-4. Manage user-trainer and user-client relationships
-
----
-
-## API Routes
-
-Key endpoints in the application:
-
-### Authentication
-- `GET /login` - Login page
-- `POST /login` - Submit login credentials
-- `GET /logout` - Logout user
-- `GET /signup` - Registration page
-- `POST /signup` - Register new user
-- `GET /change-password` - Change password page
-- `POST /change-password` - Update password
-
-### Admin
-- `GET /admin/create-user` - Admin user creation page
-- `POST /admin/create-user` - Create new user
-
----
-
-## Security Features
-
-- **Password Hashing** - All passwords are hashed using bcrypt
-- **Session Management** - Secure session handling with Flask
-- **SQL Injection Prevention** - Parameterized queries throughout
-- **Role-Based Access Control** - Protected routes based on user role
-- **HTTPS Ready** - Production deployment should use HTTPS
-
----
-
-## Troubleshooting
-
-### Oracle Connection Issues
-- **ORA-12514**: Service name not found - Check your DSN configuration
-- **DPY-3001**: Oracle Thick mode not initialized - Verify ORACLE_CLIENT_DIR path
-- **DPY-6005**: Cannot connect to Oracle - Check credentials and DSN
-- **ORA-01017**: Invalid username/password - Verify DB_USER and DB_PASSWORD
-
-### Database Issues
-- **ORA-00001**: Duplicate value - A record with that value already exists
-- **ORA-02291**: Referenced record does not exist - Foreign key constraint violation
-- **ORA-02292**: Delete blocked - Cannot delete record with dependent rows
-
-### Application Issues
-- Ensure `.env` file is in the project root with all required variables
-- Virtual environment must be activated before running the app
-- Check Flask port (default 5000) is not already in use
-
----
-
-## Future Enhancements
-
-Potential features for future versions:
-- Mobile application
-- Advanced analytics and progress charts
-- Integration with fitness wearables
-- Social features (follow trainers, compare progress)
-- Payment processing for personal training
-- Automated workout recommendations based on performance
-
----
-
-## Contributing
-
-This is a university project for CS 4604 at Virginia Tech, instructed by Dr. Nizamani (Spring 2026).
-
----
-
-## License
-
-This project is created for educational purposes.
-
----
-
-## Support
-
-For issues, questions, or suggestions, please contact one of the team members or refer to the project documentation. 
