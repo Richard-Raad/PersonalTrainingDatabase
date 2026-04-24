@@ -273,7 +273,6 @@ The application uses a relational database with the following main entities:
 - **BodyMetric** - User body measurements over time
 - **Notification** - System notifications
 
-For detailed schema information, refer to [db/PTDB_Create.sql](db/PTDB_Create.sql)
 
 ---
 
@@ -297,81 +296,4 @@ For detailed schema information, refer to [db/PTDB_Create.sql](db/PTDB_Create.sq
 3. Create users with specific roles (admin, trainer, client)
 4. Manage user-trainer and user-client relationships
 
----
 
-## API Routes
-
-Key endpoints in the application:
-
-### Authentication
-- `GET /login` - Login page
-- `POST /login` - Submit login credentials
-- `GET /logout` - Logout user
-- `GET /signup` - Registration page
-- `POST /signup` - Register new user
-- `GET /change-password` - Change password page
-- `POST /change-password` - Update password
-
-### Admin
-- `GET /admin/create-user` - Admin user creation page
-- `POST /admin/create-user` - Create new user
-
----
-
-## Security Features
-
-- **Password Hashing** - All passwords are hashed using bcrypt
-- **Session Management** - Secure session handling with Flask
-- **SQL Injection Prevention** - Parameterized queries throughout
-- **Role-Based Access Control** - Protected routes based on user role
-- **HTTPS Ready** - Production deployment should use HTTPS
-
----
-
-## Troubleshooting
-
-### Oracle Connection Issues
-- **ORA-12514**: Service name not found - Check your DSN configuration
-- **DPY-3001**: Oracle Thick mode not initialized - Verify ORACLE_CLIENT_DIR path
-- **DPY-6005**: Cannot connect to Oracle - Check credentials and DSN
-- **ORA-01017**: Invalid username/password - Verify DB_USER and DB_PASSWORD
-
-### Database Issues
-- **ORA-00001**: Duplicate value - A record with that value already exists
-- **ORA-02291**: Referenced record does not exist - Foreign key constraint violation
-- **ORA-02292**: Delete blocked - Cannot delete record with dependent rows
-
-### Application Issues
-- Ensure `.env` file is in the project root with all required variables
-- Virtual environment must be activated before running the app
-- Check Flask port (default 5000) is not already in use
-
----
-
-## Future Enhancements
-
-Potential features for future versions:
-- Mobile application
-- Advanced analytics and progress charts
-- Integration with fitness wearables
-- Social features (follow trainers, compare progress)
-- Payment processing for personal training
-- Automated workout recommendations based on performance
-
----
-
-## Contributing
-
-This is a university project for CS 4604 at Virginia Tech, instructed by Dr. Nizamani (Spring 2026).
-
----
-
-## License
-
-This project is created for educational purposes.
-
----
-
-## Support
-
-For issues, questions, or suggestions, please contact one of the team members or refer to the project documentation. 
