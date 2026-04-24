@@ -208,10 +208,6 @@ pip install -r requirements.txt
    sqlplus your_username@your_dsn @db/PTDB_SampleData.sql
    ```
 
-3. (Optional) Create an admin user:
-   ```bash
-   python db/create_admin.py
-   ```
 
 ### Step 6: Run the Application
 ```bash
@@ -222,7 +218,7 @@ cd backend
 python app.py
 ```
 
-The application will be available at `http://localhost:5000/`
+The application will be running at `http://localhost:5000/`
 
 ---
 
