@@ -62,12 +62,33 @@ PTDB provides a centralized database solution to manage:
 
 The application includes detailed ER diagrams and UI screenshots showcasing the system architecture and user interface:
 
-- **Database Design** - Entity-relationship diagram showing all table relationships
-- **User Interface** - Screenshots of login, signup, and main dashboard
-- **Workout Management** - Views for creating and tracking workout plans
-- **Performance Tracking** - Dashboard for monitoring progress over time
+### Database & Architecture
+- **ER Diagram** ([docs/er_diagram.png](docs/er_diagram.png)) - Complete entity-relationship diagram showing all table relationships and data model
 
-*Screenshot files are located in [docs/screenshots/](docs/screenshots/) and [docs/er_diagram.png](docs/er_diagram.png)*
+### Application UI Screenshots
+- **Figure 2.1** ([docs/screenshots/figure2.1.png](docs/screenshots/figure2.1.png)) - Login page
+- **Figure 2.2** ([docs/screenshots/figure2.2.png](docs/screenshots/figure2.2.png)) - User registration/signup page
+- **Figure 2.3** ([docs/screenshots/figure2.3.png](docs/screenshots/figure2.3.png)) - User interface overview
+- **Figure 2.4** ([docs/screenshots/figure2.4.png](docs/screenshots/figure2.4.png)) - Dashboard main page
+- **Figure 2.5** ([docs/screenshots/figure2.5.png](docs/screenshots/figure2.5.png)) - User profile section
+
+### Workout Management Screenshots
+- **Figure 3.1** ([docs/screenshots/figure3.1.png](docs/screenshots/figure3.1.png)) - Workout plans management
+
+### Feature Demonstrations
+- **Figure 5.1** ([docs/screenshots/figure5.1.png](docs/screenshots/figure5.1.png)) - Performance tracking dashboard
+- **Figure 5.2** ([docs/screenshots/figure5.2.png](docs/screenshots/figure5.2.png)) - Performance metrics view
+
+### Admin & Additional Features
+- **Figure 6.1** ([docs/screenshots/figure6.1.png](docs/screenshots/figure6.1.png)) - Admin panel
+- **Figure 6.2** ([docs/screenshots/figure6.2.png](docs/screenshots/figure6.2.png)) - User management
+- **Figure 6.3** ([docs/screenshots/figure6.3.png](docs/screenshots/figure6.3.png)) - Trainer management
+- **Figure 6.4** ([docs/screenshots/figure6.4.png](docs/screenshots/figure6.4.png)) - Client management
+- **Figure 6.5** ([docs/screenshots/figure6.5.png](docs/screenshots/figure6.5.png)) - Exercise library
+- **Figure 6.6** ([docs/screenshots/figure6.6.png](docs/screenshots/figure6.6.png)) - Workout session tracking
+- **Figure 6.7** ([docs/screenshots/figure6.7.png](docs/screenshots/figure6.7.png)) - Performance analytics
+
+All screenshot files are located in [docs/screenshots/](docs/screenshots/)
 
 ---
 
