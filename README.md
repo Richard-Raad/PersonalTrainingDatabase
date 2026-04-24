@@ -54,7 +54,6 @@ PTDB provides a centralized database solution to manage:
 - **Trainer Profiles** - View trainer information and credentials
 - **Gym Associations** - Link trainers to specific gym locations
 - **Client-Trainer Relationships** - Manage trainer-client connections
-- **Notifications** - Send and receive training-related notifications
 
 ---
 
