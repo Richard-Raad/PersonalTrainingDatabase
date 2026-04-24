@@ -147,9 +147,9 @@ The application includes detailed ER diagrams and UI screenshots showcasing the 
 
 ### Prerequisites
 - Python 3.8 or higher
-- Oracle Instant Client (for database connectivity)
+- Oracle Instant Client 
 - Git
-- Oracle FreeSQL account (for database hosting)
+- Oracle FreeSQL account
 
 ### Step 1: Clone the Repository
 ```bash
