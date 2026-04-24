@@ -123,19 +123,16 @@ The application includes detailed ER diagrams and UI screenshots showcasing the 
 ## Technology Stack
 
 ### Backend
-- **Framework**: Flask (Python web framework)
+- **Framework**: Flask 
 - **Language**: Python 3.14
-- **Authentication**: bcrypt for password hashing
 - **Database Driver**: oracledb (Python Oracle Database Interface)
 
 ### Frontend
 - **HTML5** - Markup and page structure
 - **CSS** - Styling and responsive design
-- **Templates**: Jinja2 (Flask templating engine)
 
 ### Database
 - **Oracle Database** - Hosted on Oracle FreeSQL
-- **Version**: 23 AI
 
 ### Environment
 - **Python Virtual Environment** (.venv)
